@@ -42,7 +42,7 @@ abstract class ManagerAbstract implements BootstrapActionsHandler
 	 * Instance hlavního manageru
 	 * 
 	 * @acces protected
-	 * @var Manager
+	 * @var \iCms\Manager
 	 */
 	protected $_manager = null;
 	
@@ -58,9 +58,9 @@ abstract class ManagerAbstract implements BootstrapActionsHandler
 	/**
 	 * Vrací referenci na instanci hlavního manageru
 	 * 
-	 * @return Manager
+	 * @return \iCms\Manager
 	 */
-	public function getManager()
+	public function getTopManager()
 	{
 		if(null == $this->_manager)
 			$this->_manager = Manager::getInstance();
@@ -79,7 +79,7 @@ abstract class ManagerAbstract implements BootstrapActionsHandler
 	{
 		if(!$reload && $this->_options)
 			return $this->_options;
-		$this->_options = new \Zend_Config_Ini($this->getOptionsPath(),null,true);
+		$this->_options = $this->getManager('File')->openConfig($this->getOptionsPath());
 		return $this->_options;
 	}
 	
@@ -94,7 +94,17 @@ abstract class ManagerAbstract implements BootstrapActionsHandler
 	}
 	
 	/**
-	 * Vrací jméno manageru
+	 * Vrací cestu k adresáři s configy pro daný modul
+	 * 
+	 * @return string
+	 */
+	public function getOptionsDirectory()
+	{
+		return ICMS_PATH . '/' . $this->getShortName() . '/configs'; 	
+	}
+	
+	/**
+	 * Vrací jméno celé manageru
 	 * 
 	 * @return string
 	 */
@@ -122,6 +132,50 @@ abstract class ManagerAbstract implements BootstrapActionsHandler
 			$shortName = $hlp;
 		return $withManagerPostfix ? $shortName : strstr($shortName, 'Manager',true);
 	}
+	
+	/**
+	 * TODO
+	 * 
+	 * @return \iCms\Error\ErrorAbstract
+	 */
+	public function getErrorClass()
+	{
+		$className = strstr(get_class($this),'Manager',true) . 'Error';
+		return new $className();
+	}
+	
+	/**
+	 * Vrací cestu k manageru
+	 * 
+	 * @return string
+	 */
+	public function getPath()
+	{
+		return ICMS_PATH . '/' . $this->getShortName();
+	}
+	
+	public function callHandler($name,$params = null)
+	{
+		$className = 'iCms\\' . $this->getShortName(false) . '\\' . $this->getShortName() . 'Handlers';
+		$handlers = $className::getInstance();
+		$handlers->$name($params); 
+	}
+	
+	/**
+	 * Slouží k získání instnace libovolného z manažerů iCms systému,
+	 * je předpokládána určitá hierarchie složek v iCms library
+	 * 
+	 * @param string $name jméno managera
+	 * @return \iCms\Manager\ManagerAbstract vrací instanci požadovaného manažera
+	 */
+	public function getManager($name = null)
+	{
+		if(!$name)
+			return $this->getInstance();
+		($name = strtolower($name)) && $name = ucfirst($name);
+		$className = 'iCms\\' . $name . '\\' . $name . 'Manager';
+		return $className::getInstance();	
+	}	
 	
 	/**
 	 * @see BootsrapActionsHandler

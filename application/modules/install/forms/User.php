@@ -1,5 +1,6 @@
 <?php
-use iCms\Formulare\FormAbstract;
+use iCms\Ui\forms\FormAbstract;
+
 
 class Install_Form_User extends FormAbstract
 {	
@@ -35,7 +36,7 @@ class Install_Form_User extends FormAbstract
 	public function __construct($options = null)
 	{
 		parent::__construct($options);
-		$this->setAction($this->getView()->url(array('akce'=>'user'),'installCreate'));
+		$this->setAction('');
 		$this->setMethod('post');
 		$this->addItems();
 	}

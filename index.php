@@ -18,7 +18,11 @@ defined('APPLICATION_ENV')
 // Definování cesty k iCms library
 defined('ICMS_PATH') 
 	|| define('ICMS_PATH',APPLICATION_PATH . '/../library/iCms');
-    
+
+function getTime()
+{
+	return gettimeofday();
+}
 // Ensure library/ is on include_path
 set_include_path(implode(PATH_SEPARATOR, array(
     realpath(APPLICATION_PATH . '/../library'),

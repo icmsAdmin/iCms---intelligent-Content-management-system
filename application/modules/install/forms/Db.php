@@ -1,5 +1,5 @@
 <?php
-use iCms\Formulare\FormAbstract;
+use iCms\Ui\forms\FormAbstract;
 
 class Install_Form_Db extends FormAbstract
 {		
@@ -22,8 +22,8 @@ class Install_Form_Db extends FormAbstract
 		/** 
  	*@type text 
  	*/
-	public $username;
-	public $usernameOptions = array(
+	public $user;
+	public $userOptions = array(
 		'required'=>true,
 		'label'=>'Uživatelské jméno mysql:');
 	
@@ -42,7 +42,7 @@ class Install_Form_Db extends FormAbstract
 	public function __construct($options = null)
 	{
 		parent::__construct($options);
-		$this->setAction($this->getView()->url(array('akce'=>'db'),'installCreate'));
+		$this->setAction('');
 		$this->setMethod('post');
 		$this->addItems();
 	}

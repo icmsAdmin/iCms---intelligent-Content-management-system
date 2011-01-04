@@ -37,7 +37,26 @@ final class DbManager extends ManagerAbstract
 	 * @access private
 	 * @var \Zend_Db_Adapter_Abstract
 	 */
-	private $_dbAdapter;
+	private $_dbAdapter = null;
+	
+	/**
+	 * instance Doctrine 2 entity manageru;
+	 * 
+	 * @var \Doctrine\ORM\EntityManager
+	 * @access private
+	 */
+	private $_doctrineEntityManager = null;
+	
+	/**
+	 * Nahrává options ze svého config.ini
+	 * 
+	 * @access protected
+	 * @return void
+	 */
+	protected function __construct()
+	{
+		$this->getOptions();
+	}
 	
 	/**
 	 * Implementuje vzor singleton
@@ -60,27 +79,62 @@ final class DbManager extends ManagerAbstract
 	 */
 	public function getDbAdapter()
 	{	
+		if(null == $this->_dbAdapter) {
+			$db = new \Zend_Application_Resource_Db($this->getOptions()->zend_db->toArray());
+			$this->_dbAdapter = $db->init();
+		}
 		return $this->_dbAdapter;
 	}
 	
+	
 	/**
-	 * Instancuje Db adapteru, je na developerovi, aby zajistil včasné instancování
-	 * adaptéru, aby nedošlo k problémum při používání Db manageru
+	 * Inicializuje Doctrine2 framework, doporučuje se volat
+	 * spíše getDoctrineEntityManager
 	 * 
-	 * @param array|Zend_Config $options
-	 * @param string $adapterType defaultně pdo_mysql
-	 * @param bool $setDefault jestli nastavit do Zend_Db_Table jako default adapter
-	 * @return \Zend_Db_Adapter_Abstract
+	 * @return void
 	 */
-	public function createDbAdapter($conOptions, $adapterType = 'pdo_mysql', $setDefault = true)
+	public function initDoctrine2()
+	{	
+		require_once 'iCms/Db/Doctrine.php';
+		if(null != $this->_doctrineEntityManager)
+			return;
+		$doctrineOptions = $this->getOptions()->toArray();
+		$doctrineOptions = $doctrineOptions['doctrine'];
+		$doctrine = new \Doctrine();
+		$this->_doctrineEntityManager = $doctrine->init($doctrineOptions);			
+	}
+	
+	public function setConOptions(array $conOptions)
 	{
-		if($this->_dbAdapter)
-			return $this->_dbAdapter;
-		$adapter = \Zend_Db::factory($adapterType, $conOptions);
-		$this->_dbAdapter = $adapter;
-		if($setDefault)
-			\Zend_Db_Table::setDefaultAdapter($adapter);
-		return $adapter;
+		$options = $this->getOptions();
+		foreach($conOptions as $key => $value) {
+			$options->doctrine->connection->$key = $value;
+			if('user' == $key) {
+				$options->zend_db->params->username = $value;
+				continue;
+			}
+			$options->zend_db->params->$key = $value;
+		}
+	}
+	
+	/**
+	 * Vrací instanci doctrine 2 entity manageru
+	 * 
+	 * @return \Doctrine\ORM\EntityManager
+	 */
+	public function getDoctrineEntityManager()
+	{	
+		$this->initDoctrine2();
+		return $this->_doctrineEntityManager;
+	}
+	
+	/**
+	 * Inicializuje Zend_Db komponentu
+	 * 
+	 * @return void
+	 */
+	public function initZendDb()
+	{
 	}
 	
 	/**
@@ -107,9 +161,15 @@ final class DbManager extends ManagerAbstract
 		if($sql) {
 			$adapter = $this->getDbAdapter();
 			$adapter->query($sql);
-			while($sql = strtok(';'))
+			while(trim(($sql = strtok(';'))))
 				$adapter->query($sql);
 		}
 				
+	}
+	
+	public function __destruct()
+	{
+		$writer = new \Zend_Config_Writer_Ini();
+		$writer->write($this->getOptionsPath(),$this->getOptions());
 	}
 }

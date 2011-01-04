@@ -67,7 +67,7 @@ abstract class Zend_Application_Resource_ResourceAbstract implements Zend_Applic
      * @param mixed $options
      */
     public function __construct($options = null)
-    {
+    {	
         if (is_array($options)) {
             $this->setOptions($options);
         } else if ($options instanceof Zend_Config) {

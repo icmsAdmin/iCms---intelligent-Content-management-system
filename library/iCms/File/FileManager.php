@@ -45,6 +45,28 @@ final class FileManager extends ManagerAbstract
 	}
 	
 	/**
+	 * Zkopíruje daný soubor
+	 * 
+	 * @param string $source
+	 * @param strin $destination
+	 */
+	public function makeCopy($source, $destination)
+	{	
+		copy($source, $destination);
+	}
+	
+	/**
+	 * Zjistí, jestli daný adresář nebo soubor existuje
+	 * 
+	 * @param string $filename
+	 * @return bool
+	 */
+	public function isExist($filename)
+	{
+		return file_exists($filename);
+	}
+	
+	/**
 	 * Nastavuje práva adresáři nebo souboru
 	 * 
 	 * @param string $filename
@@ -54,6 +76,29 @@ final class FileManager extends ManagerAbstract
 	public function setFileAccess($filename, $unixCode)
 	{
 		chmod($filename, $unixCode);
+	}
+	
+	/**
+	 * Smaže daný soubor
+	 * 
+	 * @param string $filename
+	 * @return bool jestli to vyšlo
+	 */
+	public function deleteFile($filename)
+	{
+		return unlink($filename);
+	}
+	
+	/**
+	 * Přejmenuje adresář nebo soubor
+	 * 
+	 * @param string $filename
+	 * @param string $newName
+	 * @return bool jestli to vyšlo
+	 */
+	public function rename($filename, $newName)
+	{
+		return rename($filename, $newName);
 	}
 	
 	/**
@@ -76,6 +121,17 @@ final class FileManager extends ManagerAbstract
 	}
 	
 	/**
+	 * Vrací instanci Zend_Config_Ini
+	 * 
+	 * @param string $filename
+	 * @return \Zend_Config_Ini
+	 */
+	public function openConfig($filename)
+	{
+		return new \Zend_Config_Ini($filename,null, true);
+	}
+	
+	/**
 	 * Vrací obsah souboru jako řetězec
 	 * 
 	 * @param string $filename
@@ -83,6 +139,6 @@ final class FileManager extends ManagerAbstract
 	 */
 	public function getFileContent($filename)
 	{	
-		return file_get_contents($filename);
+		return ($content = file_get_contents($filename)) ? $content : die("Nepodařilo se otevřít soubor");
 	}
 }

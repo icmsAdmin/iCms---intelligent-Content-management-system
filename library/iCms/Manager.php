@@ -348,7 +348,7 @@ final class Manager
 	 * je předpokládána určitá hierarchie složek v iCms library
 	 * 
 	 * @param string $name jméno managera
-	 * @return mixed vrací instanci požadovaného manažera
+	 * @return \iCms\Manager\ManagerAbstract vrací instanci požadovaného manažera
 	 */
 	public function getManager($name = null)
 	{

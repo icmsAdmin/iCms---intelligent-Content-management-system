@@ -44,12 +44,30 @@ final class InstallationManager extends ManagerAbstract
 	 * Otestuje validitu instalace podle configu obsahujícího
 	 * informace o probíhající/proběhlé instalaci
 	 * 
-	 * @return void
+	 * @return null|ArrayObject vrací null, když je vše ok
 	 */
 	public function isValid()
 	{
 		$options = $this->getOptions();
-		$this->getManager()->getManager('File')->createFileIfNotExist($options->installation->installScript);
+		$fm = $this->getTopManager()->getManager('File');
+		if(!$fm->isExist($options->installation->installScript))
+			$fm->makeCopy($this->getOptionsDirectory() . '/installation_default.ini',$options->installation->installScript);
+		$config = new \Zend_Config_Ini($options->installation->installScript,'installation');
+		$em = $this->getTopManager()->getManager('Error');
+		if($result = $em->scanValidation($config->toArray()))
+			return $result;
+		else 
+			return null;
+	}
+	
+	public function installTables()
+	{	
+		$this->getManager('Db')->executeSqlFromFile($this->getOptions()->installation->tableScript);
+	}
+	
+	public function installData()
+	{
+		$this->getManager('Db')->executeSqlFromFile($this->getOptions()->installation->dataScript);
 	}
 	
 	/**
@@ -65,28 +83,4 @@ final class InstallationManager extends ManagerAbstract
 		return self::$_installationManager; 	
 	}
 	
-	/**
-	 * Zahájí instalaci databáze - tzn. tabulek i dat
-	 */
-	public function installDb()
-	{
-		$this->installDbTables();
-		$this->installDbData();	
-	}
-	
-	/**
-	 * Zahájí instalaci tabulek do existující databáze
-	 */
-	public function installDbTables()
-	{
-		$this->getManager()->getManager('File')->executeSqlFromFile(ICMS_PATH . '/Installation/sql/tables.sql');							
-	}
-	
-	/**
-	 * Zahájí instalaci dat do existující databáze
-	 */
-	public function installDbData()
-	{
-		$this->getManager()->getManager('File')->executeSqlFromFile(ICMS_PATH . '/Installation/sql/data.sql');
-	}
 }
